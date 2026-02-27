@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Price Tracker</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-card: #21262d;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b949e;
+            --border: #30363d;
+            --green: #3fb950;
+            --red: #f85149;
+            --blue: #58a6ff;
+            --yellow: #d29922;
+            --purple: #a371f7;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+        }
+
+        .last-updated {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-top: 10px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .controls button {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .controls button:hover {
+            background: var(--border);
+        }
+
+        .controls button.active {
+            background: var(--blue);
+            border-color: var(--blue);
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .summary-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .summary-card .label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+        }
+
+        .summary-card .value {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .summary-card .value.green { color: var(--green); }
+        .summary-card .value.red { color: var(--red); }
+
+        .tokens-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 15px;
+        }
+
+        .token-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .token-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .token-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .token-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--bg-secondary);
+        }
+
+        .token-name {
+            flex: 1;
+        }
+
+        .token-name h3 {
+            font-size: 1.1rem;
+            margin-bottom: 2px;
+        }
+
+        .token-name span {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .token-price {
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .price-changes {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .price-change {
+            background: var(--bg-secondary);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .price-change .label {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            margin-bottom: 4px;
+        }
+
+        .price-change .value {
+            font-weight: 600;
+        }
+
+        .price-change .value.positive { color: var(--green); }
+        .price-change .value.negative { color: var(--red); }
+
+        .supply-info {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            padding: 12px 0;
+            border-top: 1px solid var(--border);
+        }
+
+        .supply-item {
+            text-align: center;
+        }
+
+        .supply-item .label {
+            color: var(--text-secondary);
+            font-size: 0.7rem;
+            margin-bottom: 4px;
+        }
+
+        .supply-item .value {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .ath-atl {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border);
+        }
+
+        .ath-atl-item {
+            text-align: center;
+        }
+
+        .ath-atl-item .label {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            margin-bottom: 4px;
+        }
+
+        .ath-atl-item .price {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .ath-atl-item .date {
+            color: var(--text-secondary);
+            font-size: 0.7rem;
+        }
+
+        .ath-atl-item .percent {
+            font-size: 0.75rem;
+            margin-top: 2px;
+        }
+
+        .ath-atl-item.ath .price { color: var(--green); }
+        .ath-atl-item.atl .price { color: var(--red); }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: var(--text-secondary);
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: rgba(248, 81, 73, 0.1);
+            border: 1px solid var(--red);
+            color: var(--red);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .sparkline {
+            height: 40px;
+            margin: 10px 0;
+        }
+
+        .rank-badge {
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+
+        .sector-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .sector-badge {
+            font-size: 0.65rem;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 4px;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Tablet */
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+
+            .tokens-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .summary-cards {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .summary-card {
+                padding: 15px;
+            }
+
+            .summary-card .value {
+                font-size: 1.25rem;
+            }
+        }
+
+        /* Mobile */
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            .header {
+                margin-bottom: 20px;
+            }
+
+            .header h1 {
+                font-size: 1.3rem;
+            }
+
+            .header p {
+                font-size: 0.8rem;
+            }
+
+            .last-updated {
+                font-size: 0.75rem;
+            }
+
+            .controls {
+                gap: 8px;
+                margin-bottom: 15px;
+            }
+
+            .controls button {
+                padding: 8px 12px;
+                font-size: 0.75rem;
+                flex: 1;
+                min-width: 0;
+            }
+
+            .summary-cards {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+                margin-bottom: 15px;
+            }
+
+            .summary-card {
+                padding: 12px 8px;
+                border-radius: 8px;
+            }
+
+            .summary-card .label {
+                font-size: 0.7rem;
+            }
+
+            .summary-card .value {
+                font-size: 1.1rem;
+            }
+
+            .tokens-grid {
+                gap: 10px;
+            }
+
+            .token-card {
+                padding: 15px;
+                border-radius: 10px;
+            }
+
+            .token-header {
+                flex-wrap: wrap;
+                gap: 10px;
+                margin-bottom: 10px;
+            }
+
+            .token-icon {
+                width: 36px;
+                height: 36px;
+            }
+
+            .token-name {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .token-name h3 {
+                font-size: 1rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .token-name span {
+                font-size: 0.75rem;
+            }
+
+            .rank-badge {
+                font-size: 0.65rem;
+                padding: 2px 6px;
+                order: 3;
+            }
+
+            .token-price {
+                font-size: 1.15rem;
+                width: 100%;
+                text-align: right;
+                order: 4;
+                margin-top: -5px;
+            }
+
+            .sector-tags {
+                gap: 4px;
+                margin-bottom: 10px;
+            }
+
+            .sector-badge {
+                font-size: 0.6rem;
+                padding: 2px 6px;
+            }
+
+            .price-changes {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 6px;
+                margin: 10px 0;
+            }
+
+            .price-change {
+                padding: 8px 4px;
+                border-radius: 6px;
+            }
+
+            .price-change .label {
+                font-size: 0.65rem;
+            }
+
+            .price-change .value {
+                font-size: 0.8rem;
+            }
+
+            .supply-info {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+                padding: 10px 0;
+            }
+
+            .supply-item .label {
+                font-size: 0.65rem;
+            }
+
+            .supply-item .value {
+                font-size: 0.8rem;
+            }
+
+            .ath-atl {
+                gap: 8px;
+                padding-top: 10px;
+            }
+
+            .ath-atl-item .label {
+                font-size: 0.65rem;
+            }
+
+            .ath-atl-item .price {
+                font-size: 0.85rem;
+            }
+
+            .ath-atl-item .date {
+                font-size: 0.6rem;
+            }
+
+            .ath-atl-item .percent {
+                font-size: 0.65rem;
+            }
+        }
+
+        /* Extra small phones */
+        @media (max-width: 360px) {
+            body {
+                padding: 8px;
+            }
+
+            .controls {
+                flex-wrap: wrap;
+            }
+
+            .controls button {
+                flex: 1 1 45%;
+            }
+
+            .price-changes {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .token-price {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🪙 Crypto Price Tracker</h1>
+        <p>Track 30 tokens with ATH/ATL and price movements</p>
+        <div class="last-updated" id="lastUpdated">Loading...</div>
+    </div>
+
+    <div class="controls">
+        <button id="refreshBtn" onclick="fetchData()">🔄 Refresh</button>
+        <button id="sortPrice" onclick="sortBy('price')">Sort by Price</button>
+        <button id="sortChange" onclick="sortBy('change24h')">Sort by 24h Change</button>
+        <button id="sortRank" onclick="sortBy('rank')" class="active">Sort by Rank</button>
+    </div>
+
+    <div class="summary-cards" id="summaryCards">
+        <div class="summary-card">
+            <div class="label">Total Tokens</div>
+            <div class="value">30</div>
+        </div>
+        <div class="summary-card">
+            <div class="label">Gainers (24h)</div>
+            <div class="value green" id="gainersCount">-</div>
+        </div>
+        <div class="summary-card">
+            <div class="label">Losers (24h)</div>
+            <div class="value red" id="losersCount">-</div>
+        </div>
+        <div class="summary-card">
+            <div class="label">Avg 24h Change</div>
+            <div class="value" id="avgChange">-</div>
+        </div>
+    </div>
+
+    <div id="tokensContainer">
+        <div class="loading">
+            <div class="loading-spinner"></div>
+            <p>Loading token data...</p>
+        </div>
+    </div>
+
+    <script>
+        // Sector color mapping
+        const SECTOR_COLORS = {
+            'L1': '#3b82f6',       // Blue
+            'L2': '#6366f1',       // Indigo
+            'AI': '#8b5cf6',       // Purple
+            'DeFi': '#22c55e',     // Green
+            'DePIN': '#f59e0b',    // Amber
+            'RWA': '#ec4899',      // Pink
+            'Oracle': '#14b8a6',   // Teal
+            'Gaming': '#f43f5e',   // Rose
+            'Infra': '#64748b',    // Slate
+            'Modular': '#0ea5e9',  // Sky
+            'Restaking': '#a855f7',// Violet
+            'Meme': '#fbbf24',     // Yellow
+            'GPU': '#06b6d4',      // Cyan
+        };
+
+        // Token list with CoinGecko IDs and sectors
+        const TOKENS = [
+            { symbol: 'BTC', name: 'Bitcoin', id: 'bitcoin', sectors: ['L1'] },
+            { symbol: 'ETH', name: 'Ethereum', id: 'ethereum', sectors: ['L1'] },
+            { symbol: 'LINK', name: 'Chainlink', id: 'chainlink', sectors: ['Oracle', 'Infra'] },
+            { symbol: 'SOL', name: 'Solana', id: 'solana', sectors: ['L1'] },
+            { symbol: 'SUI', name: 'Sui', id: 'sui', sectors: ['L1'] },
+            { symbol: 'NEAR', name: 'NEAR Protocol', id: 'near', sectors: ['L1', 'AI'] },
+            { symbol: 'AAVE', name: 'Aave', id: 'aave', sectors: ['DeFi'] },
+            { symbol: 'RENDER', name: 'Render', id: 'render-token', sectors: ['AI', 'GPU'] },
+            { symbol: 'ONDO', name: 'Ondo Finance', id: 'ondo-finance', sectors: ['RWA', 'DeFi'] },
+            { symbol: 'PENDLE', name: 'Pendle', id: 'pendle', sectors: ['DeFi'] },
+            { symbol: 'TIA', name: 'Celestia', id: 'celestia', sectors: ['Modular', 'Infra'] },
+            { symbol: 'MORPHO', name: 'Morpho', id: 'morpho', sectors: ['DeFi'] },
+            { symbol: 'INJ', name: 'Injective', id: 'injective-protocol', sectors: ['L1', 'DeFi'] },
+            { symbol: 'ARB', name: 'Arbitrum', id: 'arbitrum', sectors: ['L2'] },
+            { symbol: 'IMX', name: 'Immutable X', id: 'immutable-x', sectors: ['L2', 'Gaming'] },
+            { symbol: 'EIGEN', name: 'EigenLayer', id: 'eigenlayer', sectors: ['Restaking', 'Infra'] },
+            { symbol: 'CFG', name: 'Centrifuge', id: 'centrifuge', sectors: ['RWA'] },
+            { symbol: 'IO', name: 'io.net', id: 'io', sectors: ['AI', 'DePIN', 'GPU'] },
+            { symbol: 'ZETA', name: 'ZetaChain', id: 'zetachain', sectors: ['L1', 'Infra'] },
+            { symbol: 'DIMO', name: 'DIMO', id: 'dimo', sectors: ['DePIN'] },
+            { symbol: 'HONEY', name: 'Hivemapper', id: 'hivemapper', sectors: ['DePIN'] },
+            { symbol: 'WMT', name: 'World Mobile Token', id: 'world-mobile-token', sectors: ['DePIN'] },
+            { symbol: 'TAO', name: 'Bittensor', id: 'bittensor', sectors: ['AI'] },
+            { symbol: 'FET', name: 'ASI Alliance', id: 'fetch-ai', sectors: ['AI'] },
+            { symbol: 'HNT', name: 'Helium', id: 'helium', sectors: ['DePIN'] },
+            { symbol: 'HYPE', name: 'Hyperliquid', id: 'hyperliquid', sectors: ['L1', 'DeFi'] },
+            { symbol: 'PUMP', name: 'Pump.fun', id: 'pump-fun', sectors: ['Meme', 'Infra'] },
+            { symbol: 'SKY', name: 'Sky', id: 'sky', sectors: ['DeFi'] },
+            { symbol: 'SYRUP', name: 'Maple Finance', id: 'syrup', sectors: ['DeFi', 'RWA'] },
+            { symbol: 'ETHFI', name: 'Ether.fi', id: 'ether-fi', sectors: ['DeFi', 'Restaking'] }
+        ];
+
+        let tokenData = [];
+        let currentSort = 'rank';
+
+        let lastFetchTime = 0;
+        let cachedData = null;
+        const CACHE_DURATION = 30000; // 30 seconds cache
+
+        async function fetchData(retryCount = 0) {
+            const container = document.getElementById('tokensContainer');
+            
+            // Use cache if available and fresh
+            const now = Date.now();
+            if (cachedData && (now - lastFetchTime) < CACHE_DURATION) {
+                tokenData = cachedData;
+                renderTokens();
+                updateSummary();
+                document.getElementById('lastUpdated').textContent = 
+                    `Last updated: ${new Date(lastFetchTime).toLocaleTimeString()} (cached) • Auto-refresh: 90s`;
+                return;
+            }
+            
+            container.innerHTML = `
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>Loading token data...${retryCount > 0 ? ` (retry ${retryCount}/3)` : ''}</p>
+                </div>
+            `;
+
+            try {
+                const ids = TOKENS.map(t => t.id).join(',');
+                const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${ids}&order=market_cap_desc&sparkline=true&price_change_percentage=1h,24h,7d,30d`;
+                
+                const response = await fetch(url);
+                
+                if (response.status === 429) {
+                    // Rate limited - wait and retry
+                    if (retryCount < 3) {
+                        const waitTime = (retryCount + 1) * 10000; // 10s, 20s, 30s
+                        container.innerHTML = `
+                            <div class="loading">
+                                <div class="loading-spinner"></div>
+                                <p>Rate limited. Retrying in ${waitTime/1000}s...</p>
+                            </div>
+                        `;
+                        await new Promise(r => setTimeout(r, waitTime));
+                        return fetchData(retryCount + 1);
+                    }
+                }
+                
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                lastFetchTime = Date.now();
+                
+                // Map API data to our token list
+                tokenData = TOKENS.map(token => {
+                    const apiData = data.find(d => d.id === token.id);
+                    if (apiData) {
+                        return {
+                            ...token,
+                            price: apiData.current_price,
+                            change1h: apiData.price_change_percentage_1h_in_currency,
+                            change24h: apiData.price_change_percentage_24h,
+                            change7d: apiData.price_change_percentage_7d_in_currency,
+                            change30d: apiData.price_change_percentage_30d_in_currency,
+                            marketCap: apiData.market_cap,
+                            rank: apiData.market_cap_rank,
+                            ath: apiData.ath,
+                            athDate: apiData.ath_date,
+                            athChange: apiData.ath_change_percentage,
+                            atl: apiData.atl,
+                            atlDate: apiData.atl_date,
+                            atlChange: apiData.atl_change_percentage,
+                            image: apiData.image,
+                            sparkline: apiData.sparkline_in_7d?.price || [],
+                            totalSupply: apiData.total_supply,
+                            circulatingSupply: apiData.circulating_supply,
+                            maxSupply: apiData.max_supply
+                        };
+                    }
+                    return { ...token, error: true };
+                });
+
+                // Cache the successful data
+                cachedData = tokenData;
+                
+                renderTokens();
+                updateSummary();
+                updateLastUpdated();
+                
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                
+                // If we have cached data, show it with a warning
+                if (cachedData) {
+                    tokenData = cachedData;
+                    renderTokens();
+                    updateSummary();
+                    document.getElementById('lastUpdated').textContent = 
+                        `⚠️ Using cached data from ${new Date(lastFetchTime).toLocaleTimeString()} • Refresh failed`;
+                } else {
+                    container.innerHTML = `
+                        <div class="error">
+                            <p>⚠️ Error loading data: ${error.message}</p>
+                            <p style="margin-top: 10px; font-size: 0.85rem;">Try refreshing in a few seconds. CoinGecko has rate limits.</p>
+                            <button onclick="fetchData()" style="margin-top: 15px; padding: 10px 20px; cursor: pointer;">Retry Now</button>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        function formatPrice(price) {
+            if (price === null || price === undefined) return 'N/A';
+            if (price >= 1000) return '$' + price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (price >= 1) return '$' + price.toFixed(2);
+            if (price >= 0.01) return '$' + price.toFixed(4);
+            return '$' + price.toFixed(6);
+        }
+
+        function formatMarketCap(cap) {
+            if (cap === null || cap === undefined) return 'N/A';
+            if (cap >= 1e12) return '$' + (cap / 1e12).toFixed(2) + 'T';
+            if (cap >= 1e9) return '$' + (cap / 1e9).toFixed(2) + 'B';
+            if (cap >= 1e6) return '$' + (cap / 1e6).toFixed(2) + 'M';
+            if (cap >= 1e3) return '$' + (cap / 1e3).toFixed(2) + 'K';
+            return '$' + cap.toFixed(0);
+        }
+
+        function formatSupply(supply) {
+            if (supply === null || supply === undefined) return '∞';
+            if (supply >= 1e12) return (supply / 1e12).toFixed(2) + 'T';
+            if (supply >= 1e9) return (supply / 1e9).toFixed(2) + 'B';
+            if (supply >= 1e6) return (supply / 1e6).toFixed(2) + 'M';
+            if (supply >= 1e3) return (supply / 1e3).toFixed(2) + 'K';
+            return supply.toLocaleString();
+        }
+
+        function formatPercent(value) {
+            if (value === null || value === undefined) return 'N/A';
+            const sign = value >= 0 ? '+' : '';
+            return sign + value.toFixed(2) + '%';
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            return new Date(dateString).toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric', 
+                year: 'numeric' 
+            });
+        }
+
+        function renderTokens() {
+            const container = document.getElementById('tokensContainer');
+            
+            const sortedData = [...tokenData].sort((a, b) => {
+                if (a.error) return 1;
+                if (b.error) return -1;
+                
+                switch (currentSort) {
+                    case 'price':
+                        return (b.price || 0) - (a.price || 0);
+                    case 'change24h':
+                        return (b.change24h || 0) - (a.change24h || 0);
+                    case 'rank':
+                    default:
+                        return (a.rank || 999) - (b.rank || 999);
+                }
+            });
+
+            container.innerHTML = `
+                <div class="tokens-grid">
+                    ${sortedData.map(token => renderTokenCard(token)).join('')}
+                </div>
+            `;
+        }
+
+        function renderTokenCard(token) {
+            if (token.error) {
+                return `
+                    <div class="token-card">
+                        <div class="token-header">
+                            <div class="token-icon"></div>
+                            <div class="token-name">
+                                <h3>${token.name}</h3>
+                                <span>${token.symbol}</span>
+                            </div>
+                        </div>
+                        <div class="error" style="margin: 0; padding: 10px;">
+                            Data unavailable
+                        </div>
+                    </div>
+                `;
+            }
+
+            const change24hClass = token.change24h >= 0 ? 'positive' : 'negative';
+            const change7dClass = token.change7d >= 0 ? 'positive' : 'negative';
+            const change1hClass = token.change1h >= 0 ? 'positive' : 'negative';
+            const change30dClass = token.change30d >= 0 ? 'positive' : 'negative';
+
+            const sectorBadges = (token.sectors || []).map(sector => 
+                `<span class="sector-badge" style="background: ${SECTOR_COLORS[sector] || '#666'}">${sector}</span>`
+            ).join('');
+
+            return `
+                <div class="token-card">
+                    <div class="token-header">
+                        <img class="token-icon" src="${token.image}" alt="${token.name}" onerror="this.style.display='none'">
+                        <div class="token-name">
+                            <h3>${token.name}</h3>
+                            <span>${token.symbol} • MCap: ${formatMarketCap(token.marketCap)}</span>
+                        </div>
+                        <span class="rank-badge">#${token.rank || '?'}</span>
+                        <div class="token-price">${formatPrice(token.price)}</div>
+                    </div>
+                    <div class="sector-tags">${sectorBadges}</div>
+                    
+                    <div class="price-changes">
+                        <div class="price-change">
+                            <div class="label">1H</div>
+                            <div class="value ${change1hClass}">${formatPercent(token.change1h)}</div>
+                        </div>
+                        <div class="price-change">
+                            <div class="label">24H</div>
+                            <div class="value ${change24hClass}">${formatPercent(token.change24h)}</div>
+                        </div>
+                        <div class="price-change">
+                            <div class="label">7D</div>
+                            <div class="value ${change7dClass}">${formatPercent(token.change7d)}</div>
+                        </div>
+                        <div class="price-change">
+                            <div class="label">30D</div>
+                            <div class="value ${change30dClass}">${formatPercent(token.change30d)}</div>
+                        </div>
+                    </div>
+
+                    <div class="supply-info">
+                        <div class="supply-item">
+                            <div class="label">📊 Circulating</div>
+                            <div class="value">${formatSupply(token.circulatingSupply)}</div>
+                        </div>
+                        <div class="supply-item">
+                            <div class="label">📦 Total</div>
+                            <div class="value">${formatSupply(token.totalSupply)}</div>
+                        </div>
+                        <div class="supply-item">
+                            <div class="label">🔒 Max</div>
+                            <div class="value">${formatSupply(token.maxSupply)}</div>
+                        </div>
+                        <div class="supply-item">
+                            <div class="label">📈 % Circ</div>
+                            <div class="value">${token.maxSupply ? ((token.circulatingSupply / token.maxSupply) * 100).toFixed(1) + '%' : (token.totalSupply ? ((token.circulatingSupply / token.totalSupply) * 100).toFixed(1) + '%' : 'N/A')}</div>
+                        </div>
+                    </div>
+
+                    <div class="ath-atl">
+                        <div class="ath-atl-item ath">
+                            <div class="label">🏔️ All-Time High</div>
+                            <div class="price">${formatPrice(token.ath)}</div>
+                            <div class="date">${formatDate(token.athDate)}</div>
+                            <div class="percent" style="color: var(--red)">${formatPercent(token.athChange)}</div>
+                        </div>
+                        <div class="ath-atl-item atl">
+                            <div class="label">🕳️ All-Time Low</div>
+                            <div class="price">${formatPrice(token.atl)}</div>
+                            <div class="date">${formatDate(token.atlDate)}</div>
+                            <div class="percent" style="color: var(--green)">${formatPercent(token.atlChange)}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateSummary() {
+            const validTokens = tokenData.filter(t => !t.error);
+            
+            const gainers = validTokens.filter(t => t.change24h > 0).length;
+            const losers = validTokens.filter(t => t.change24h < 0).length;
+            const avgChange = validTokens.reduce((sum, t) => sum + (t.change24h || 0), 0) / validTokens.length;
+            
+            document.getElementById('gainersCount').textContent = gainers;
+            document.getElementById('losersCount').textContent = losers;
+            
+            const avgEl = document.getElementById('avgChange');
+            avgEl.textContent = formatPercent(avgChange);
+            avgEl.className = 'value ' + (avgChange >= 0 ? 'green' : 'red');
+        }
+
+        function updateLastUpdated() {
+            const now = new Date();
+            document.getElementById('lastUpdated').textContent = 
+                `Last updated: ${now.toLocaleTimeString()} • Auto-refresh: 90s`;
+        }
+
+        function sortBy(type) {
+            currentSort = type;
+            
+            // Update button states
+            document.querySelectorAll('.controls button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById('sort' + type.charAt(0).toUpperCase() + type.slice(1).replace('24h', 'Change')).classList.add('active');
+            
+            renderTokens();
+        }
+
+        // Initial fetch
+        fetchData();
+
+        // Auto-refresh every 90 seconds
+        setInterval(fetchData, 90000);
+    </script>
+</body>
+</html>
