@@ -346,6 +346,195 @@
             -webkit-line-clamp: unset;
         }
 
+        .vendor-card {
+            cursor: pointer;
+        }
+
+        /* Vendor Detail Page */
+        .vendor-detail-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-primary);
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .vendor-detail-overlay.active {
+            display: block;
+        }
+
+        .detail-back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+            transition: all 0.2s;
+        }
+
+        .detail-back-btn:hover {
+            background: var(--accent-light);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .detail-header {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .detail-header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .detail-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .detail-meta {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .detail-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .detail-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .detail-section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .detail-description {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: var(--text-secondary);
+        }
+
+        .detail-contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .detail-contact-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px;
+            background: var(--bg-primary);
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: all 0.2s;
+        }
+
+        .detail-contact-item:hover {
+            background: var(--accent-light);
+        }
+
+        .detail-contact-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .detail-contact-icon.phone { background: #dcfce7; }
+        .detail-contact-icon.email { background: #e0e7ff; }
+        .detail-contact-icon.website { background: #f3e8ff; }
+        .detail-contact-icon.contact { background: #fef3c7; }
+
+        .detail-contact-info {
+            flex: 1;
+        }
+
+        .detail-contact-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .detail-contact-value {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .related-vendors {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .related-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .related-card:hover {
+            border-color: var(--accent);
+            background: var(--accent-light);
+        }
+
+        .related-card-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .related-card-meta {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
         @media (max-width: 768px) {
             body {
                 padding: 10px;
@@ -476,6 +665,12 @@
     </div>
 
     <div class="vendors-grid" id="vendorsGrid"></div>
+
+    <!-- Vendor Detail Overlay -->
+    <div class="vendor-detail-overlay" id="vendorDetailOverlay">
+        <button class="detail-back-btn" onclick="closeVendorDetail()">← Back to Directory</button>
+        <div id="vendorDetailContent"></div>
+    </div>
 
     <script>
         const vendors = [
@@ -841,8 +1036,10 @@
 
             document.getElementById('resultsCount').textContent = filteredVendors.length;
 
-            grid.innerHTML = filteredVendors.map((v, idx) => `
-                <div class="vendor-card">
+            grid.innerHTML = filteredVendors.map((v, idx) => {
+                const vendorIdx = vendors.findIndex(vendor => vendor.name === v.name);
+                return `
+                <div class="vendor-card" onclick="showVendorDetail(${vendorIdx})">
                     <div class="vendor-header">
                         <div class="vendor-name">${v.name}</div>
                         <span class="category-badge ${getCategoryClass(v.category)}">${getCategoryEmoji(v.category)} ${v.category}</span>
@@ -851,22 +1048,17 @@
                         <span class="meta-item">👶 Ages ${formatAgeRange(v.ageMin, v.ageMax)}</span>
                         <span class="meta-item">📍 ${v.location}</span>
                     </div>
-                    <div class="vendor-description" id="desc-${idx}">${v.description}</div>
-                    <button class="expand-btn" onclick="toggleDescription(${idx})">Read more</button>
-                    <div class="vendor-contact">
-                        ${v.phone ? `<a href="tel:${v.phone}" class="contact-btn phone">📞 ${v.phone}</a>` : ''}
-                        ${v.email ? `<a href="mailto:${v.email}" class="contact-btn email">✉️ Email</a>` : ''}
-                        ${v.website ? `<a href="${v.website}" target="_blank" class="contact-btn website">🌐 Website</a>` : ''}
+                    <div class="vendor-description" id="desc-${idx}">${v.description.substring(0, 150)}...</div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+                        <span style="font-size:0.85rem;color:var(--accent);font-weight:600">View Details →</span>
+                        <div style="display:flex;gap:6px" onclick="event.stopPropagation()">
+                            ${v.phone ? `<a href="tel:${v.phone}" class="contact-btn phone" style="padding:6px 10px">📞</a>` : ''}
+                            ${v.email ? `<a href="mailto:${v.email}" class="contact-btn email" style="padding:6px 10px">✉️</a>` : ''}
+                            ${v.website ? `<a href="${v.website}" target="_blank" class="contact-btn website" style="padding:6px 10px">🌐</a>` : ''}
+                        </div>
                     </div>
                 </div>
-            `).join('');
-        }
-
-        function toggleDescription(idx) {
-            const desc = document.getElementById(`desc-${idx}`);
-            desc.classList.toggle('expanded');
-            const btn = desc.nextElementSibling;
-            btn.textContent = desc.classList.contains('expanded') ? 'Show less' : 'Read more';
+            `}).join('');
         }
 
         function applyFilters() {
@@ -933,6 +1125,123 @@
         document.getElementById('categoryFilter').addEventListener('change', applyFilters);
         document.getElementById('ageFilter').addEventListener('input', applyFilters);
         document.getElementById('locationFilter').addEventListener('change', applyFilters);
+
+        // Vendor Detail Functions
+        function showVendorDetail(idx) {
+            const v = vendors[idx];
+            if (!v) return;
+
+            // Find related vendors (same category, excluding current)
+            const related = vendors.filter(vendor => 
+                vendor.category === v.category && vendor.name !== v.name
+            ).slice(0, 4);
+
+            const content = document.getElementById('vendorDetailContent');
+            content.innerHTML = `
+                <div class="detail-header">
+                    <div class="detail-header-top">
+                        <div>
+                            <div class="detail-name">${v.name}</div>
+                            <span class="category-badge ${getCategoryClass(v.category)}" style="font-size:0.85rem;padding:6px 14px">
+                                ${getCategoryEmoji(v.category)} ${v.category}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="detail-meta">
+                        <div class="detail-meta-item">👶 Ages ${formatAgeRange(v.ageMin, v.ageMax)}</div>
+                        <div class="detail-meta-item">📍 ${v.location}</div>
+                        ${v.contact ? `<div class="detail-meta-item">👤 ${v.contact}</div>` : ''}
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <div class="detail-section-title">📋 About</div>
+                    <div class="detail-description">${v.description}</div>
+                </div>
+
+                <div class="detail-section">
+                    <div class="detail-section-title">📞 Contact Information</div>
+                    <div class="detail-contact-grid">
+                        ${v.phone ? `
+                            <a href="tel:${v.phone}" class="detail-contact-item">
+                                <div class="detail-contact-icon phone">📞</div>
+                                <div class="detail-contact-info">
+                                    <div class="detail-contact-label">Phone</div>
+                                    <div class="detail-contact-value">${v.phone}</div>
+                                </div>
+                            </a>
+                        ` : ''}
+                        ${v.email ? `
+                            <a href="mailto:${v.email}" class="detail-contact-item">
+                                <div class="detail-contact-icon email">✉️</div>
+                                <div class="detail-contact-info">
+                                    <div class="detail-contact-label">Email</div>
+                                    <div class="detail-contact-value">${v.email}</div>
+                                </div>
+                            </a>
+                        ` : ''}
+                        ${v.website ? `
+                            <a href="${v.website}" target="_blank" class="detail-contact-item">
+                                <div class="detail-contact-icon website">🌐</div>
+                                <div class="detail-contact-info">
+                                    <div class="detail-contact-label">Website</div>
+                                    <div class="detail-contact-value">Visit Website →</div>
+                                </div>
+                            </a>
+                        ` : ''}
+                        ${v.contact ? `
+                            <div class="detail-contact-item">
+                                <div class="detail-contact-icon contact">👤</div>
+                                <div class="detail-contact-info">
+                                    <div class="detail-contact-label">Contact Person</div>
+                                    <div class="detail-contact-value">${v.contact}</div>
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <div class="detail-section-title">📍 Location & Service Area</div>
+                    <div class="detail-description">
+                        <strong>${v.location}</strong> - Serving Cobb County and Metro Atlanta area.
+                        <br><br>
+                        <strong>Ages Served:</strong> ${formatAgeRange(v.ageMin, v.ageMax)} years old
+                    </div>
+                </div>
+
+                ${related.length > 0 ? `
+                    <div class="detail-section">
+                        <div class="detail-section-title">🔗 Similar Resources in ${v.category}</div>
+                        <div class="related-vendors">
+                            ${related.map(r => {
+                                const relIdx = vendors.findIndex(vendor => vendor.name === r.name);
+                                return `
+                                    <div class="related-card" onclick="showVendorDetail(${relIdx})">
+                                        <div class="related-card-name">${r.name}</div>
+                                        <div class="related-card-meta">📍 ${r.location} • Ages ${formatAgeRange(r.ageMin, r.ageMax)}</div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+            `;
+
+            document.getElementById('vendorDetailOverlay').classList.add('active');
+            document.body.style.overflow = 'hidden';
+            window.scrollTo(0, 0);
+        }
+
+        function closeVendorDetail() {
+            document.getElementById('vendorDetailOverlay').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeVendorDetail();
+        });
 
         // Initial render
         sortVendors();
