@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SN Directory - Special Needs Resources</title>
+    <style>
+        :root {
+            --bg-primary: #f8fafc;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --accent: #6366f1;
+            --accent-light: #eef2ff;
+            --green: #22c55e;
+            --blue: #3b82f6;
+            --purple: #a855f7;
+            --pink: #ec4899;
+            --orange: #f97316;
+            --teal: #14b8a6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 30px 20px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border-radius: 16px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        .controls {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .search-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 15px 12px 40px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            background: var(--bg-primary);
+        }
+
+        .search-box::before {
+            content: "🔍";
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-group label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        select {
+            padding: 10px 15px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background: var(--bg-primary);
+            min-width: 150px;
+            cursor: pointer;
+        }
+
+        .age-filter {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .age-filter input {
+            width: 60px;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .reset-btn {
+            padding: 10px 20px;
+            background: var(--text-secondary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-left: auto;
+        }
+
+        .reset-btn:hover {
+            background: var(--text-primary);
+        }
+
+        .results-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 0 5px;
+        }
+
+        .results-count {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .sort-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .sort-btn {
+            padding: 6px 12px;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .sort-btn:hover, .sort-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .vendors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .vendor-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.2s;
+        }
+
+        .vendor-card:hover {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            transform: translateY(-2px);
+        }
+
+        .vendor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .vendor-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .category-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .cat-dance { background: #fce7f3; color: #be185d; }
+        .cat-sports { background: #dcfce7; color: #166534; }
+        .cat-museum { background: #e0e7ff; color: #3730a3; }
+        .cat-attraction { background: #fef3c7; color: #92400e; }
+        .cat-camps { background: #ccfbf1; color: #0f766e; }
+        .cat-music { background: #f3e8ff; color: #7c3aed; }
+        .cat-social { background: #ffe4e6; color: #be123c; }
+        .cat-art { background: #fae8ff; color: #a21caf; }
+
+        .vendor-meta {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .vendor-description {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 15px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .vendor-contact {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .contact-btn {
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+        }
+
+        .contact-btn.phone {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .contact-btn.email {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+
+        .contact-btn.website {
+            background: #f3e8ff;
+            color: #7c3aed;
+        }
+
+        .contact-btn:hover {
+            filter: brightness(0.95);
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .no-results h3 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .expand-btn {
+            background: none;
+            border: none;
+            color: var(--accent);
+            cursor: pointer;
+            font-size: 0.85rem;
+            padding: 0;
+            margin-top: 5px;
+        }
+
+        .vendor-description.expanded {
+            -webkit-line-clamp: unset;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .stats-bar {
+                gap: 15px;
+            }
+
+            .stat-value {
+                font-size: 1.4rem;
+            }
+
+            .vendors-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .search-row, .filter-row {
+                flex-direction: column;
+            }
+
+            .search-box {
+                min-width: 100%;
+            }
+
+            .filter-group {
+                width: 100%;
+            }
+
+            select {
+                width: 100%;
+            }
+
+            .reset-btn {
+                width: 100%;
+                margin-left: 0;
+                margin-top: 10px;
+            }
+
+            .results-info {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+
+            .sort-buttons {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌟 SN Directory</h1>
+        <p>Special Needs Resources • Cobb County & Metro Atlanta</p>
+        <div class="stats-bar">
+            <div class="stat">
+                <div class="stat-value" id="totalVendors">28</div>
+                <div class="stat-label">Resources</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">8</div>
+                <div class="stat-label">Categories</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">0-Adult</div>
+                <div class="stat-label">Ages Served</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <div class="search-row">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search by name, description, or keyword...">
+            </div>
+        </div>
+        <div class="filter-row">
+            <div class="filter-group">
+                <label>Category</label>
+                <select id="categoryFilter">
+                    <option value="">All Categories</option>
+                    <option value="Dance">🩰 Dance</option>
+                    <option value="Sports & Recreation">🏊 Sports & Recreation</option>
+                    <option value="Museum">🏛️ Museum</option>
+                    <option value="Attraction">🎭 Attraction</option>
+                    <option value="Camps">🏕️ Camps</option>
+                    <option value="Music Classes">🎵 Music</option>
+                    <option value="Art Classes">🎨 Art</option>
+                    <option value="Social">👥 Social</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Child's Age</label>
+                <div class="age-filter">
+                    <input type="number" id="ageFilter" min="0" max="99" placeholder="Age">
+                    <span>years</span>
+                </div>
+            </div>
+            <div class="filter-group">
+                <label>Location</label>
+                <select id="locationFilter">
+                    <option value="">All Locations</option>
+                    <option value="Atlanta">Atlanta</option>
+                    <option value="Marietta">Marietta</option>
+                    <option value="Kennesaw">Kennesaw</option>
+                    <option value="Roswell">Roswell</option>
+                    <option value="Acworth">Acworth</option>
+                    <option value="Cartersville">Cartersville</option>
+                    <option value="Austell">Austell</option>
+                </select>
+            </div>
+            <button class="reset-btn" onclick="resetFilters()">Reset Filters</button>
+        </div>
+    </div>
+
+    <div class="results-info">
+        <div class="results-count"><span id="resultsCount">28</span> resources found</div>
+        <div class="sort-buttons">
+            <button class="sort-btn active" onclick="sortBy('name')">A-Z</button>
+            <button class="sort-btn" onclick="sortBy('category')">Category</button>
+            <button class="sort-btn" onclick="sortBy('ageMin')">Age (Young→Old)</button>
+        </div>
+    </div>
+
+    <div class="vendors-grid" id="vendorsGrid"></div>
+
+    <script>
+        const vendors = [
+            {
+                name: "Atlanta Dance Central",
+                category: "Dance",
+                ageMin: 3, ageMax: 99,
+                phone: "770-992-0170",
+                email: "office@atlantadancecentral.com",
+                website: "https://www.atlantadancecentral.com",
+                location: "Roswell",
+                contact: "Charlotte Williamson",
+                description: "Inclusive, body-positive dance education offering ballet, jazz, tap, hip hop, contemporary, acrobatics, aerial silks, and capoeira. Features 'Physio Jazz Adaptive Dance' specifically designed for students with physical or developmental disabilities. Summer dance camps, private lessons, and mentorship program available. First class is free for new families."
+            },
+            {
+                name: "Big Blue Swim School (Sandy Plains)",
+                category: "Sports & Recreation",
+                ageMin: 3, ageMax: 14,
+                phone: "470-665-3528",
+                email: "Sandyplains@bigblueswimschool.com",
+                website: "https://bigblueswimschool.com",
+                location: "Sandy Plains",
+                contact: "Megan Bushey",
+                description: "Adaptive swim lessons using Swim Whisperers® method for children with autism, sensory issues, motor skill difficulties, and cognitive challenges. One-on-one and small group lessons with individualized plans. Free trial lesson available. Warm, clean facilities with parent viewing areas."
+            },
+            {
+                name: "BlazeSports",
+                category: "Sports & Recreation",
+                ageMin: 2, ageMax: 18,
+                phone: "404-270-2035",
+                email: "scarter@blazesports.org",
+                website: "https://blazesports.org",
+                location: "Atlanta",
+                contact: "Savannah Carter",
+                description: "Legacy organization of the 1996 Atlanta Paralympic Games. Serves youth with physical disabilities including spina bifida, spinal cord injury, cerebral palsy, dwarfism, amputations, and visual impairments. Programs include BlazeTOTS, youth track & field, and Camp Phoenix summer camp."
+            },
+            {
+                name: "Booth Western Art Museum",
+                category: "Museum",
+                ageMin: 0, ageMax: 99,
+                phone: "770-607-6372",
+                email: "pattyd@boothmuseum.org",
+                website: "https://www.boothmuseum.org",
+                location: "Cartersville",
+                contact: "Patty Dees",
+                description: "Largest permanent exhibition space for Western art in the country and Smithsonian affiliate. Wheelchair accessible with accommodations for visitors with sensory or accessibility needs. Features hands-on activities and interactive exhibits suitable for young children and families."
+            },
+            {
+                name: "Catalyst Sports",
+                category: "Sports & Recreation",
+                ageMin: 3, ageMax: 99,
+                phone: "702-423-8544",
+                email: "desiree@catalystsports.org",
+                website: "https://www.catalystsports.org",
+                location: "Atlanta",
+                contact: "Desiree Stanley",
+                description: "Adaptive adventure sports for people with physical disabilities. Activities include adaptive rock climbing, cycling on Silver Comet Trail, mountain biking, and kayaking. Monthly community rides with adaptive bikes (handcycles, recumbent trikes) available. Weekly climbing clinics. Low-cost model (~$10/session)."
+            },
+            {
+                name: "Center for Puppetry Arts",
+                category: "Attraction",
+                ageMin: 3, ageMax: 99,
+                phone: "404-881-5117",
+                email: "saraburmenko@puppet.org",
+                website: "https://puppet.org",
+                location: "Atlanta",
+                contact: "Sara Burmenko",
+                description: "Largest nonprofit puppetry organization in the U.S. Features Jim Henson museum and Create-A-Puppet Workshops. Sensory-Friendly Sundays with modified lighting, reduced sound, fidget toys, sound-reducing headphones, and adaptive art supplies. ASL-interpreted and audio-described performances available."
+            },
+            {
+                name: "Children's Museum of Atlanta",
+                category: "Museum",
+                ageMin: 0, ageMax: 11,
+                phone: "404-527-5967",
+                email: "rbova@childrensmuseumatlanta.org",
+                website: "https://childrensmuseumatlanta.org",
+                location: "Atlanta",
+                contact: "Rachel Bova",
+                description: "Hands-on, interactive museum for children birth through age 11. STEAM learning, creative play, and exploration exhibits. Sensory engagement, problem-solving, and social interaction in age-appropriate environments. Inclusive programming and accessibility accommodations available."
+            },
+            {
+                name: "CK DanceWorks Inc.",
+                category: "Dance",
+                ageMin: 3, ageMax: 22,
+                phone: "770-975-7298",
+                email: "info@ckdanceworks.com",
+                website: "https://ckdanceworks.com",
+                location: "Kennesaw",
+                contact: "Katie Clark",
+                description: "Offers ballet, jazz, tap, hip hop, contemporary, and acrobatics. Features 'Chance 2 Dance' and 'Adaptive Dance' programs specifically designed for students with special needs or sensory-processing disorders. Voted 'Best Dance Studio' in Kennesaw and Acworth."
+            },
+            {
+                name: "Cobb County Aquatics",
+                category: "Sports & Recreation",
+                ageMin: 0, ageMax: 99,
+                phone: "770-528-8817",
+                email: "natalia.smith@cobbcounty.org",
+                website: "https://www.cobbcounty.gov/parks",
+                location: "Cobb County",
+                contact: "Tasha Smith",
+                description: "County-run aquatic programs including therapeutic recreation and specialized programming for individuals with disabilities. Adaptive swim lessons, water safety instruction, and recreational swimming at affordable rates in accessible county facilities."
+            },
+            {
+                name: "Cobb County Public Library: Disability & Accessibility Services",
+                category: "Social",
+                ageMin: 0, ageMax: 99,
+                phone: "770-528-2376",
+                email: "jessica.parker@cobbcounty.gov",
+                website: "https://www.cobbcounty.gov/library/library-services/library-accessibility-services",
+                location: "Cobb County",
+                contact: "Jessica Parker",
+                description: "Free inclusive library programming including accessible materials (large print, audiobooks, Braille), assistive technology, adaptive programming, sensory-friendly events, and inclusive storytimes. Staff trained to assist visitors with accessibility needs."
+            },
+            {
+                name: "Fernbank Museum",
+                category: "Museum",
+                ageMin: 3, ageMax: 99,
+                phone: "404-929-6306",
+                email: "jaquan.jackson@fernbankmuseum.org",
+                website: "https://FernbankMuseum.org",
+                location: "Atlanta",
+                contact: "JaQuan Jackson",
+                description: "Natural history museum with dinosaur galleries, nature exploration areas, and outdoor trails. Interactive exhibits and hands-on science activities. Accessibility accommodations and inclusive programming for visitors with disabilities."
+            },
+            {
+                name: "Fox Theatre",
+                category: "Attraction",
+                ageMin: 0, ageMax: 99,
+                phone: "404-881-2119",
+                email: "megan.payne@foxtheatre.org",
+                website: "https://www.foxtheatre.org/visit-us-page/guest-services-accessibility",
+                location: "Atlanta",
+                contact: "Megan Payne",
+                description: "Historic performing arts venue offering Broadway shows, concerts, comedy, and family entertainment. Accessibility services include wheelchair seating, assisted listening devices, and sensory-friendly performances. Accommodations available upon advance request."
+            },
+            {
+                name: "Georgia Aquarium",
+                category: "Attraction",
+                ageMin: 0, ageMax: 99,
+                phone: "404-581-4000",
+                email: "Hospitality@georgiaaquarium.org",
+                website: "https://www.georgiaaquarium.org/accessibility-at-georgia-aquarium/",
+                location: "Atlanta",
+                contact: "Hospitality",
+                description: "One of the world's largest aquariums. Offers sensory guides, social stories, quiet spaces, assistive listening devices, and ASL interpretation. Touch tanks and interactive exhibits for all abilities. Regular sensory-friendly hours available."
+            },
+            {
+                name: "Georgia Symphony Orchestra",
+                category: "Music Classes",
+                ageMin: 0, ageMax: 99,
+                phone: "770-615-2908",
+                email: "info@georgiasymphony.org",
+                website: "https://www.georgiasymphony.org",
+                location: "Cobb County",
+                contact: "Ann Stoskopf",
+                description: "Inclusive music programming including educational outreach, family-friendly concerts, music appreciation classes, and sensory-friendly performances. Introduces children and families to orchestral music in welcoming, supportive settings."
+            },
+            {
+                name: "GiGi's Playhouse Atlanta",
+                category: "Social",
+                ageMin: 0, ageMax: 99,
+                phone: "470-359-4105",
+                email: "atlanta@gigisplayhouse.org",
+                website: "https://gigisplayhouse.org/atlanta/",
+                location: "Atlanta",
+                contact: "Jennifer Rackley",
+                description: "Down Syndrome Achievement Center offering FREE educational, therapeutic, and career programs from birth through adulthood. Includes early literacy, speech/language classes, music therapy, sensory play, tutoring, social skills, STEM, fitness, and job readiness. Parent support groups available."
+            },
+            {
+                name: "Hand, Hoof, and Heart",
+                category: "Camps",
+                ageMin: 3, ageMax: 99,
+                phone: "678-478-4013",
+                email: "Bclancy@handhoofheart.org",
+                website: "https://www.handhoofheart.org",
+                location: "Acworth",
+                contact: "Brit Clancy",
+                description: "Therapeutic horseback riding with PATH-certified instructors on 15-acre farm. Serves autism, ADHD, cerebral palsy, cognitive disabilities, epilepsy, and more. Summer camps include riding, arts & crafts, nature walks, cooking, dance, and yoga. Financial assistance available through scholarships."
+            },
+            {
+                name: "Inneractions Therapy Services",
+                category: "Social",
+                ageMin: 3, ageMax: 99,
+                phone: "770-726-9624",
+                email: "info@myinneractions.com",
+                website: "https://www.myinneractions.com",
+                location: "Marietta",
+                contact: "Emily Cown",
+                description: "Specializes in social skills development for autism, ADHD, social anxiety, and learning differences. Offers individual/family therapy, social skills groups, therapeutic tabletop RPG groups, and intensive summer programs. Neurodiversity-affirming approach. Telehealth available."
+            },
+            {
+                name: "Lekotek of Georgia",
+                category: "Social",
+                ageMin: 0, ageMax: 8,
+                phone: "770-420-9889",
+                email: "cobb@lekotekga.org",
+                website: "https://www.lekotekga.org",
+                location: "Cobb County",
+                contact: "Lisa Nevitt",
+                description: "Play-based programs using specially adapted toys and technology. 'Lekotek' means 'play library' in Swedish. Guided play sessions, toy lending libraries, sibling support, and family activities. Promotes social interaction, motor skills, communication, and cognitive development."
+            },
+            {
+                name: "Perfect Harmony Health",
+                category: "Art Classes",
+                ageMin: 0, ageMax: 99,
+                phone: "404-369-3953",
+                email: "holly@perfectharmonyhealth.com",
+                website: "https://perfectharmonyhealth.com",
+                location: "Atlanta",
+                contact: "Holly DeMarino",
+                description: "Therapeutic art classes promoting physical, emotional, and cognitive well-being. Inclusive programs for individuals with disabilities develop fine motor skills, self-expression, social interaction, and emotional regulation through creative expression."
+            },
+            {
+                name: "Sandy Plains Party Animalz",
+                category: "Sports & Recreation",
+                ageMin: 2, ageMax: 99,
+                phone: "678-522-5037",
+                email: "donahuescott@hotmail.com",
+                website: "https://www.instagram.com/the.partyanimalz/",
+                location: "Sandy Plains",
+                contact: "Scott Donahue",
+                description: "Recreational sports and entertainment programming for all abilities. Fun, engaging activities adaptable to participants with varying needs. Follow Instagram for latest program offerings and schedules."
+            },
+            {
+                name: "Sharkie's Swim Academy",
+                category: "Sports & Recreation",
+                ageMin: 0, ageMax: 99,
+                phone: "678-827-2822",
+                email: "info@sharkiesacademy.com",
+                website: "https://www.sharkiesacademy.com",
+                location: "Atlanta",
+                contact: "Kayla Hawkins",
+                description: "Adaptive swim program for swimmers with autism, sensory processing differences, physical disabilities, and developmental delays. Individualized lesson plans focusing on water safety, comfort, and skill development. Supportive, patient environment."
+            },
+            {
+                name: "Six Flags Over Georgia",
+                category: "Attraction",
+                ageMin: 3, ageMax: 99,
+                phone: "770-739-3400",
+                email: "guestrelations@sftp.com",
+                website: "https://www.sixflags.com/overgeorgia",
+                location: "Austell",
+                contact: "Guest Relations",
+                description: "Major theme park with Attraction Access Pass for guests who cannot wait in traditional queues. Wheelchair accessibility, companion seating, and accommodations for cognitive, sensory, and physical needs. Service animals welcome. Contact Guest Relations in advance."
+            },
+            {
+                name: "Southern Museum of Civil War & Locomotive History",
+                category: "Museum",
+                ageMin: 0, ageMax: 8,
+                phone: "770-427-2117 ext. 3173",
+                email: "atorrance@kennesaw-ga.gov",
+                website: "https://southernmuseum.org",
+                location: "Kennesaw",
+                contact: "Amy Torrance",
+                description: "Features the famous locomotive 'The General' from the Great Locomotive Chase. Interactive exhibits and hands-on activities. Inclusive educational programs designed for diverse learning styles and abilities."
+            },
+            {
+                name: "STARS Soccer and Basketball",
+                category: "Sports & Recreation",
+                ageMin: 3, ageMax: 22,
+                phone: "",
+                email: "ysoccerkids@gmail.com",
+                website: "https://www.facebook.com/groups/403286295739883",
+                location: "Atlanta",
+                contact: "Gus Carpio / Jennifer Kramer",
+                description: "Adaptive soccer and basketball for children and young adults with developmental disabilities. Focus on player development and fun rather than competition. Builds confidence, social skills, physical fitness, and teamwork. All ability levels welcome."
+            },
+            {
+                name: "The Georgia Ballet",
+                category: "Dance",
+                ageMin: 3, ageMax: 99,
+                phone: "770-528-0881",
+                email: "office@georgiaballet.org",
+                website: "https://www.georgiaballet.org",
+                location: "Marietta",
+                contact: "Rachel Row",
+                description: "Founded 1960. FREE 'DanceAbility' program twice weekly for differently-abled students ages 6-18 with physical or developmental disabilities. Develops motor planning, body awareness, balance, and movement with music. Sensory-friendly performances with modified lighting and reduced audio."
+            },
+            {
+                name: "Therabeat, Inc.",
+                category: "Camps",
+                ageMin: 0, ageMax: 99,
+                phone: "770-687-2542",
+                email: "therabeatmusic@gmail.com",
+                website: "http://www.therabeat.com",
+                location: "Atlanta",
+                contact: "Jennifer Puckett",
+                description: "Music therapy-based programs and camps. Uses rhythm, melody, and creative music-making to support developmental goals, communication, social interaction, motor skills, and emotional expression. Individual and group sessions available."
+            },
+            {
+                name: "We Rock The Spectrum Kids Gym – Atlanta",
+                category: "Camps",
+                ageMin: 0, ageMax: 14,
+                phone: "770-680-2535",
+                email: "info@werockthespectrumatlanta.com",
+                website: "https://werockthespectrumatlanta.com",
+                location: "Roswell",
+                contact: "Aditi Khanna",
+                description: "All-inclusive sensory gym for ages 6mo-14yrs. Equipment includes zipline, trampoline, rock wall, calming room. Programs: Open Play, School Break Camps, PreK Prep, Social Skills Groups, Music & Movement, Zumbini, adaptive tumbling, Spanish, STEAM. 'Finally a place where you never have to say I'm sorry.'"
+            },
+            {
+                name: "Zoo Atlanta",
+                category: "Attraction",
+                ageMin: 0, ageMax: 99,
+                phone: "404-624-5670",
+                email: "guestexperience@zooatlanta.org",
+                website: "https://zooatlanta.org/visit/accessibility/",
+                location: "Atlanta",
+                contact: "Guest Experiences",
+                description: "Major zoological park with wheelchair accessibility, wheelchair/stroller rentals, sensory maps and guides, quiet spaces, and accommodations for visual, hearing, and cognitive needs. Animal encounters, keeper talks, and inclusive educational programs."
+            }
+        ];
+
+        let currentSort = 'name';
+        let filteredVendors = [...vendors];
+
+        function getCategoryClass(category) {
+            const map = {
+                'Dance': 'cat-dance',
+                'Sports & Recreation': 'cat-sports',
+                'Museum': 'cat-museum',
+                'Attraction': 'cat-attraction',
+                'Camps': 'cat-camps',
+                'Music Classes': 'cat-music',
+                'Art Classes': 'cat-art',
+                'Social': 'cat-social'
+            };
+            return map[category] || '';
+        }
+
+        function getCategoryEmoji(category) {
+            const map = {
+                'Dance': '🩰',
+                'Sports & Recreation': '🏊',
+                'Museum': '🏛️',
+                'Attraction': '🎭',
+                'Camps': '🏕️',
+                'Music Classes': '🎵',
+                'Art Classes': '🎨',
+                'Social': '👥'
+            };
+            return map[category] || '📍';
+        }
+
+        function formatAgeRange(min, max) {
+            if (max >= 99) return `${min}–Adult`;
+            return `${min}–${max}`;
+        }
+
+        function renderVendors() {
+            const grid = document.getElementById('vendorsGrid');
+            
+            if (filteredVendors.length === 0) {
+                grid.innerHTML = `
+                    <div class="no-results" style="grid-column: 1/-1;">
+                        <h3>No resources found</h3>
+                        <p>Try adjusting your filters or search terms</p>
+                    </div>
+                `;
+                document.getElementById('resultsCount').textContent = '0';
+                return;
+            }
+
+            document.getElementById('resultsCount').textContent = filteredVendors.length;
+
+            grid.innerHTML = filteredVendors.map((v, idx) => `
+                <div class="vendor-card">
+                    <div class="vendor-header">
+                        <div class="vendor-name">${v.name}</div>
+                        <span class="category-badge ${getCategoryClass(v.category)}">${getCategoryEmoji(v.category)} ${v.category}</span>
+                    </div>
+                    <div class="vendor-meta">
+                        <span class="meta-item">👶 Ages ${formatAgeRange(v.ageMin, v.ageMax)}</span>
+                        <span class="meta-item">📍 ${v.location}</span>
+                    </div>
+                    <div class="vendor-description" id="desc-${idx}">${v.description}</div>
+                    <button class="expand-btn" onclick="toggleDescription(${idx})">Read more</button>
+                    <div class="vendor-contact">
+                        ${v.phone ? `<a href="tel:${v.phone}" class="contact-btn phone">📞 ${v.phone}</a>` : ''}
+                        ${v.email ? `<a href="mailto:${v.email}" class="contact-btn email">✉️ Email</a>` : ''}
+                        ${v.website ? `<a href="${v.website}" target="_blank" class="contact-btn website">🌐 Website</a>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function toggleDescription(idx) {
+            const desc = document.getElementById(`desc-${idx}`);
+            desc.classList.toggle('expanded');
+            const btn = desc.nextElementSibling;
+            btn.textContent = desc.classList.contains('expanded') ? 'Show less' : 'Read more';
+        }
+
+        function applyFilters() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const category = document.getElementById('categoryFilter').value;
+            const age = document.getElementById('ageFilter').value;
+            const location = document.getElementById('locationFilter').value;
+
+            filteredVendors = vendors.filter(v => {
+                // Search filter
+                if (search) {
+                    const searchable = `${v.name} ${v.description} ${v.category} ${v.location}`.toLowerCase();
+                    if (!searchable.includes(search)) return false;
+                }
+
+                // Category filter
+                if (category && v.category !== category) return false;
+
+                // Age filter
+                if (age) {
+                    const ageNum = parseInt(age);
+                    if (ageNum < v.ageMin || ageNum > v.ageMax) return false;
+                }
+
+                // Location filter
+                if (location && !v.location.toLowerCase().includes(location.toLowerCase())) return false;
+
+                return true;
+            });
+
+            sortVendors();
+            renderVendors();
+        }
+
+        function sortBy(field) {
+            currentSort = field;
+            document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            sortVendors();
+            renderVendors();
+        }
+
+        function sortVendors() {
+            filteredVendors.sort((a, b) => {
+                if (currentSort === 'name') return a.name.localeCompare(b.name);
+                if (currentSort === 'category') return a.category.localeCompare(b.category);
+                if (currentSort === 'ageMin') return a.ageMin - b.ageMin;
+                return 0;
+            });
+        }
+
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('categoryFilter').value = '';
+            document.getElementById('ageFilter').value = '';
+            document.getElementById('locationFilter').value = '';
+            filteredVendors = [...vendors];
+            sortVendors();
+            renderVendors();
+        }
+
+        // Event listeners
+        document.getElementById('searchInput').addEventListener('input', applyFilters);
+        document.getElementById('categoryFilter').addEventListener('change', applyFilters);
+        document.getElementById('ageFilter').addEventListener('input', applyFilters);
+        document.getElementById('locationFilter').addEventListener('change', applyFilters);
+
+        // Initial render
+        sortVendors();
+        renderVendors();
+    </script>
+</body>
+</html>
